@@ -8,6 +8,7 @@ import java.awt.Insets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -20,15 +21,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import controller.BookRegisterController;
 import domain.Book;
+import storage.BookApiService;
 import storage.BookRepository;
 
 public class BookRegisterView extends JFrame {
     private BookRegisterController controller;
 
     private JTextField isbnCodeField;
+    private JButton isbnSearchButton;
     private JTextField bookNameField;
     private JTextField writerNameField;
     private JComboBox<String> statusComboBox;
@@ -63,6 +67,7 @@ public class BookRegisterView extends JFrame {
         constraints.fill = GridBagConstraints.HORIZONTAL;
 
         isbnCodeField = new JTextField();
+        isbnSearchButton = new JButton("ISBN検索");
         bookNameField = new JTextField();
         writerNameField = new JTextField();
         statusComboBox = new JComboBox<String>(new String[] {"未読", "読書中", "読了"});
@@ -74,7 +79,12 @@ public class BookRegisterView extends JFrame {
         reviewArea.setLineWrap(true);
         reviewArea.setWrapStyleWord(true);
 
-        addFormRow(formPanel, constraints, 0, "ISBNコード", isbnCodeField);
+        JPanel isbnPanel = new JPanel(new BorderLayout(8, 0));
+        isbnPanel.add(isbnCodeField, BorderLayout.CENTER);
+        isbnPanel.add(isbnSearchButton, BorderLayout.EAST);
+        isbnSearchButton.addActionListener(e -> searchBookByIsbn());
+
+        addFormRow(formPanel, constraints, 0, "ISBNコード", isbnPanel);
         addFormRow(formPanel, constraints, 1, "書籍名", bookNameField);
         addFormRow(formPanel, constraints, 2, "著者名", writerNameField);
         addFormRow(formPanel, constraints, 3, "ステータス", statusComboBox);
@@ -154,6 +164,52 @@ public class BookRegisterView extends JFrame {
         clearFields();
     }
 
+    // ISBNコードから書籍情報を取得して入力欄へ反映する。
+    private void searchBookByIsbn() {
+        String isbnCode = isbnCodeField.getText().trim();
+        if (isbnCode.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "ISBNコードを入力してください", "入力エラー", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        isbnSearchButton.setEnabled(false);
+
+        SwingWorker<Book, Void> worker = new SwingWorker<Book, Void>() {
+            @Override
+            protected Book doInBackground() {
+                return controller.searchBookByIsbn(isbnCode);
+            }
+
+            @Override
+            protected void done() {
+                isbnSearchButton.setEnabled(true);
+
+                try {
+                    Book book = get();
+                    if (book == null) {
+                        JOptionPane.showMessageDialog(
+                                BookRegisterView.this,
+                                "書籍情報が見つかりませんでした。手動で入力してください",
+                                "検索結果",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        return;
+                    }
+
+                    isbnCodeField.setText(nullToEmpty(book.getIsbnCode()));
+                    bookNameField.setText(nullToEmpty(book.getBookName()));
+                    writerNameField.setText(nullToEmpty(book.getWriterName()));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    showSearchErrorMessage();
+                } catch (ExecutionException e) {
+                    showSearchErrorMessage();
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
     // 価格を整数に変換する。
     private Integer parsePrice() {
         String priceText = priceField.getText().trim();
@@ -204,10 +260,23 @@ public class BookRegisterView extends JFrame {
         JOptionPane.showMessageDialog(this, message, "入力エラー", JOptionPane.ERROR_MESSAGE);
     }
 
+    private void showSearchErrorMessage() {
+        JOptionPane.showMessageDialog(this, "書籍情報の取得に失敗しました", "通信エラー", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private String nullToEmpty(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value;
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             BookRepository repository = new BookRepository();
-            BookRegisterController controller = new BookRegisterController(repository);
+            BookApiService bookApiService = new BookApiService();
+            BookRegisterController controller = new BookRegisterController(repository, bookApiService);
             BookRegisterView registerView = new BookRegisterView(controller);
             registerView.setVisible(true);
         });
