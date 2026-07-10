@@ -14,8 +14,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import controller.BookEditDeleteController;
 import controller.BookRegisterController;
 import controller.BookSearchController;
+import controller.TsundokuPeriodController;
+import storage.BookRepository;
 
 public class MainView extends JFrame {
     private static final int WINDOW_WIDTH = 420;
@@ -25,12 +28,21 @@ public class MainView extends JFrame {
 
     private BookRegisterController registerController;
     private BookSearchController searchController;
+    private BookEditDeleteController editDeleteController;
+    private BookRepository repository;
+    private TsundokuPeriodController tsundokuPeriodController;
 
     public MainView(
             BookRegisterController registerController,
-            BookSearchController searchController) {
+            BookSearchController searchController,
+            BookEditDeleteController editDeleteController,
+            BookRepository repository,
+            TsundokuPeriodController tsundokuPeriodController) {
         this.registerController = registerController;
         this.searchController = searchController;
+        this.editDeleteController = editDeleteController;
+        this.repository = repository;
+        this.tsundokuPeriodController = tsundokuPeriodController;
         initializeFrame();
         initializeComponents();
     }
@@ -65,8 +77,8 @@ public class MainView extends JFrame {
 
         buttonPanel.add(createRegisterButton());
         buttonPanel.add(createSearchButton());
-        buttonPanel.add(createMenuButton("書籍一覧を表示", false));
-        buttonPanel.add(createMenuButton("書籍情報を編集・削除", false));
+        buttonPanel.add(createListButton());
+        buttonPanel.add(createEditDeleteButton());
         buttonPanel.add(createMenuButton("積読ステータスを変更", false));
         buttonPanel.add(createMenuButton("統計情報を表示", false));
         buttonPanel.add(createMenuButton("終了", true));
@@ -79,7 +91,7 @@ public class MainView extends JFrame {
     private JButton createRegisterButton() {
         JButton button = createBaseButton("書籍を登録");
         button.addActionListener(e -> {
-            RegisterView registerView = new RegisterView(registerController);
+            BookRegisterView registerView = new BookRegisterView(registerController);
             registerView.setVisible(true);
         });
         return button;
@@ -89,8 +101,30 @@ public class MainView extends JFrame {
     private JButton createSearchButton() {
         JButton button = createBaseButton("書籍を検索");
         button.addActionListener(e -> {
-            SearchView searchView = new SearchView(searchController);
+            BookSearchView searchView = new BookSearchView(searchController);
             searchView.setVisible(true);
+        });
+        return button;
+    }
+
+    // 書籍一覧画面を開くボタンを作成する。
+    private JButton createListButton() {
+        JButton button = createBaseButton("書籍一覧を表示");
+        button.addActionListener(e -> {
+            BookListView bookListView =
+                    new BookListView(repository, tsundokuPeriodController);
+            bookListView.setVisible(true);
+        });
+        return button;
+    }
+
+    // 書籍情報の編集・削除画面を開くボタンを作成する。
+    private JButton createEditDeleteButton() {
+        JButton button = createBaseButton("書籍情報を編集・削除");
+        button.addActionListener(e -> {
+            BookEditDeleteView view =
+                    new BookEditDeleteView(editDeleteController, repository);
+            view.setVisible(true);
         });
         return button;
     }

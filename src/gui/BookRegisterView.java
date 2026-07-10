@@ -25,7 +25,7 @@ import controller.BookRegisterController;
 import domain.Book;
 import storage.BookRepository;
 
-public class RegisterView extends JFrame {
+public class BookRegisterView extends JFrame {
     private BookRegisterController controller;
 
     private JTextField isbnCodeField;
@@ -38,7 +38,7 @@ public class RegisterView extends JFrame {
     private JComboBox<Integer> ratingComboBox;
     private JTextArea reviewArea;
 
-    public RegisterView(BookRegisterController controller) {
+    public BookRegisterView(BookRegisterController controller) {
         this.controller = controller;
         initializeFrame();
         initializeComponents();
@@ -208,7 +208,7 @@ public class RegisterView extends JFrame {
         SwingUtilities.invokeLater(() -> {
             BookRepository repository = new BookRepository();
             BookRegisterController controller = new BookRegisterController(repository);
-            RegisterView registerView = new RegisterView(controller);
+            BookRegisterView registerView = new BookRegisterView(controller);
             registerView.setVisible(true);
         });
     }

@@ -1,8 +1,8 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -14,15 +14,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-import controller.BookSearchController;
+import controller.TsundokuPeriodController;
 import domain.Book;
 import storage.BookRepository;
 
-public class SearchView extends JFrame {
+public class BookListView extends JFrame {
     private static final String[] COLUMN_NAMES = {
         "ISBNコード",
         "書籍名",
@@ -32,62 +31,62 @@ public class SearchView extends JFrame {
         "登録日",
         "購入日",
         "評価",
-        "レビュー"
+        "レビュー",
+        "積読期間"
     };
 
-    private BookSearchController controller;
-    private JTextField keywordField;
+    private BookRepository repository;
+    private TsundokuPeriodController tsundokuPeriodController;
     private DefaultTableModel tableModel;
-    private JTable resultTable;
+    private JTable bookTable;
 
-    public SearchView(BookSearchController controller) {
-        this.controller = controller;
+    public BookListView(
+            BookRepository repository,
+            TsundokuPeriodController tsundokuPeriodController) {
+        this.repository = repository;
+        this.tsundokuPeriodController = tsundokuPeriodController;
         initializeFrame();
         initializeComponents();
+        loadBooks(false);
     }
 
     // ウィンドウの基本設定を行う。
     private void initializeFrame() {
-        setTitle("書籍検索");
+        setTitle("書籍一覧");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(920, 520);
+        setSize(980, 560);
         setLocationRelativeTo(null);
     }
 
-    // 検索欄、結果表、戻るボタンを配置する。
+    // タイトル、一覧表、戻るボタンを配置する。
     private void initializeComponents() {
         JPanel mainPanel = new JPanel(new BorderLayout(0, 12));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        mainPanel.add(createSearchPanel(), BorderLayout.NORTH);
+        mainPanel.add(createTopPanel(), BorderLayout.NORTH);
         mainPanel.add(createTableScrollPane(), BorderLayout.CENTER);
         mainPanel.add(createBottomPanel(), BorderLayout.SOUTH);
 
         add(mainPanel);
     }
 
-    // 画面上部の検索欄を作成する。
-    private JPanel createSearchPanel() {
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+    // 画面上部のタイトルと更新ボタンを作成する。
+    private JPanel createTopPanel() {
+        JPanel topPanel = new JPanel(new BorderLayout());
 
-        keywordField = new JTextField();
-        keywordField.setPreferredSize(new Dimension(300, 32));
+        JLabel titleLabel = new JLabel("登録書籍一覧");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
 
-        JButton searchButton = new JButton("検索");
-        JButton clearButton = new JButton("入力内容をクリア");
+        JButton updateButton = new JButton("更新");
+        updateButton.addActionListener(e -> loadBooks(true));
 
-        searchButton.addActionListener(e -> searchBooks());
-        clearButton.addActionListener(e -> clearSearch());
+        topPanel.add(titleLabel, BorderLayout.WEST);
+        topPanel.add(updateButton, BorderLayout.EAST);
 
-        searchPanel.add(new JLabel("検索キーワード"));
-        searchPanel.add(keywordField);
-        searchPanel.add(searchButton);
-        searchPanel.add(clearButton);
-
-        return searchPanel;
+        return topPanel;
     }
 
-    // 検索結果を表示する表を作成する。
+    // 一覧表示用の表を作成する。
     private JScrollPane createTableScrollPane() {
         tableModel = new DefaultTableModel(COLUMN_NAMES, 0) {
             @Override
@@ -96,19 +95,19 @@ public class SearchView extends JFrame {
             }
         };
 
-        resultTable = new JTable(tableModel);
-        resultTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        bookTable = new JTable(tableModel);
+        bookTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         setColumnWidths();
 
-        return new JScrollPane(resultTable);
+        return new JScrollPane(bookTable);
     }
 
     // 表の列幅を調整する。
     private void setColumnWidths() {
-        int[] widths = {110, 160, 140, 90, 70, 100, 100, 60, 220};
+        int[] widths = {110, 160, 140, 90, 70, 100, 100, 60, 220, 90};
 
         for (int i = 0; i < widths.length; i++) {
-            resultTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+            bookTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
     }
 
@@ -122,26 +121,24 @@ public class SearchView extends JFrame {
         return bottomPanel;
     }
 
-    // 検索条件を取得し、結果を表に表示する。
-    private void searchBooks() {
-        String keyword = keywordField.getText().trim();
-        ArrayList<Book> results = controller.searchBooks(keyword, "");
+    // Repositoryから最新の書籍一覧を取得して表を更新する。
+    private void loadBooks(boolean showEmptyMessage) {
+        tableModel.setRowCount(0);
 
-        displayBooks(results);
+        ArrayList<Book> books = repository.findAllBooks();
+        displayBooks(books);
 
-        if (results.isEmpty()) {
+        if (showEmptyMessage && books.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "該当する書籍が見つかりませんでした",
-                    "検索結果",
+                    "登録されている書籍はありません",
+                    "書籍一覧",
                     JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
-    // JTableの内容を検索結果で更新する。
+    // 書籍一覧をJTableへ表示する。
     private void displayBooks(ArrayList<Book> books) {
-        tableModel.setRowCount(0);
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         for (Book book : books) {
@@ -149,6 +146,8 @@ public class SearchView extends JFrame {
             if (book.getPurchaseDate() != null) {
                 purchaseDate = dateFormat.format(book.getPurchaseDate());
             }
+
+            long tsundokuPeriod = tsundokuPeriodController.calculateTsundokuPeriod(book);
 
             tableModel.addRow(new Object[] {
                 nullToEmpty(book.getIsbnCode()),
@@ -159,15 +158,10 @@ public class SearchView extends JFrame {
                 nullToEmpty(book.getRegisteredDate()),
                 purchaseDate,
                 book.getRating(),
-                nullToEmpty(book.getReview())
+                nullToEmpty(book.getReview()),
+                tsundokuPeriod + "日"
             });
         }
-    }
-
-    // 検索欄と検索結果を初期状態に戻す。
-    private void clearSearch() {
-        keywordField.setText("");
-        tableModel.setRowCount(0);
     }
 
     private String nullToEmpty(String value) {
@@ -181,9 +175,9 @@ public class SearchView extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             BookRepository repository = new BookRepository();
-            BookSearchController controller = new BookSearchController(repository);
-            SearchView searchView = new SearchView(controller);
-            searchView.setVisible(true);
+            TsundokuPeriodController tsundokuPeriodController = new TsundokuPeriodController();
+            BookListView listView = new BookListView(repository, tsundokuPeriodController);
+            listView.setVisible(true);
         });
     }
 }

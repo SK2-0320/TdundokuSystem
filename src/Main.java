@@ -1,7 +1,9 @@
 import javax.swing.SwingUtilities;
 
+import controller.BookEditDeleteController;
 import controller.BookRegisterController;
 import controller.BookSearchController;
+import controller.TsundokuPeriodController;
 import gui.MainView;
 import storage.BookRepository;
 
@@ -17,9 +19,17 @@ public class Main {
                     new BookRegisterController(repository);
             BookSearchController searchController =
                     new BookSearchController(repository);
+            BookEditDeleteController editDeleteController =
+                    new BookEditDeleteController(repository);
+            TsundokuPeriodController tsundokuPeriodController =
+                    new TsundokuPeriodController();
 
-            MainView mainView =
-                    new MainView(registerController, searchController);
+            MainView mainView = new MainView(
+                    registerController,
+                    searchController,
+                    editDeleteController,
+                    repository,
+                    tsundokuPeriodController);
             mainView.setVisible(true);
         });
     }
