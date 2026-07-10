@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import controller.BookRegisterController;
+import controller.BookSearchController;
 
 public class MainView extends JFrame {
     private static final int WINDOW_WIDTH = 420;
@@ -23,9 +24,13 @@ public class MainView extends JFrame {
     private static final int BUTTON_HEIGHT = 42;
 
     private BookRegisterController registerController;
+    private BookSearchController searchController;
 
-    public MainView(BookRegisterController registerController) {
+    public MainView(
+            BookRegisterController registerController,
+            BookSearchController searchController) {
         this.registerController = registerController;
+        this.searchController = searchController;
         initializeFrame();
         initializeComponents();
     }
@@ -59,7 +64,7 @@ public class MainView extends JFrame {
         buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         buttonPanel.add(createRegisterButton());
-        buttonPanel.add(createMenuButton("書籍を検索", false));
+        buttonPanel.add(createSearchButton());
         buttonPanel.add(createMenuButton("書籍一覧を表示", false));
         buttonPanel.add(createMenuButton("書籍情報を編集・削除", false));
         buttonPanel.add(createMenuButton("積読ステータスを変更", false));
@@ -76,6 +81,16 @@ public class MainView extends JFrame {
         button.addActionListener(e -> {
             RegisterView registerView = new RegisterView(registerController);
             registerView.setVisible(true);
+        });
+        return button;
+    }
+
+    // 書籍検索画面を開くボタンを作成する。
+    private JButton createSearchButton() {
+        JButton button = createBaseButton("書籍を検索");
+        button.addActionListener(e -> {
+            SearchView searchView = new SearchView(searchController);
+            searchView.setVisible(true);
         });
         return button;
     }
