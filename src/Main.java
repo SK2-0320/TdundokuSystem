@@ -3,6 +3,8 @@ import javax.swing.SwingUtilities;
 import controller.BookEditDeleteController;
 import controller.BookRegisterController;
 import controller.BookSearchController;
+import controller.StatisticsController;
+import controller.StatusChangeController;
 import controller.TsundokuPeriodController;
 import gui.MainView;
 import storage.BookRepository;
@@ -21,6 +23,10 @@ public class Main {
                     new BookSearchController(repository);
             BookEditDeleteController editDeleteController =
                     new BookEditDeleteController(repository);
+            StatusChangeController statusChangeController =
+                    new StatusChangeController();
+            StatisticsController statisticsController =
+                    new StatisticsController();
             TsundokuPeriodController tsundokuPeriodController =
                     new TsundokuPeriodController();
 
@@ -28,6 +34,8 @@ public class Main {
                     registerController,
                     searchController,
                     editDeleteController,
+                    statusChangeController,
+                    statisticsController,
                     repository,
                     tsundokuPeriodController);
             mainView.setVisible(true);

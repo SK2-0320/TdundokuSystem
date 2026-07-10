@@ -17,6 +17,8 @@ import javax.swing.SwingConstants;
 import controller.BookEditDeleteController;
 import controller.BookRegisterController;
 import controller.BookSearchController;
+import controller.StatisticsController;
+import controller.StatusChangeController;
 import controller.TsundokuPeriodController;
 import storage.BookRepository;
 
@@ -29,6 +31,8 @@ public class MainView extends JFrame {
     private BookRegisterController registerController;
     private BookSearchController searchController;
     private BookEditDeleteController editDeleteController;
+    private StatusChangeController statusChangeController;
+    private StatisticsController statisticsController;
     private BookRepository repository;
     private TsundokuPeriodController tsundokuPeriodController;
 
@@ -36,11 +40,15 @@ public class MainView extends JFrame {
             BookRegisterController registerController,
             BookSearchController searchController,
             BookEditDeleteController editDeleteController,
+            StatusChangeController statusChangeController,
+            StatisticsController statisticsController,
             BookRepository repository,
             TsundokuPeriodController tsundokuPeriodController) {
         this.registerController = registerController;
         this.searchController = searchController;
         this.editDeleteController = editDeleteController;
+        this.statusChangeController = statusChangeController;
+        this.statisticsController = statisticsController;
         this.repository = repository;
         this.tsundokuPeriodController = tsundokuPeriodController;
         initializeFrame();
@@ -79,8 +87,8 @@ public class MainView extends JFrame {
         buttonPanel.add(createSearchButton());
         buttonPanel.add(createListButton());
         buttonPanel.add(createEditDeleteButton());
-        buttonPanel.add(createMenuButton("積読ステータスを変更", false));
-        buttonPanel.add(createMenuButton("統計情報を表示", false));
+        buttonPanel.add(createStatusChangeButton());
+        buttonPanel.add(createStatisticsButton());
         buttonPanel.add(createMenuButton("終了", true));
 
         mainPanel.add(buttonPanel, BorderLayout.CENTER);
@@ -125,6 +133,28 @@ public class MainView extends JFrame {
             BookEditDeleteView view =
                     new BookEditDeleteView(editDeleteController, repository);
             view.setVisible(true);
+        });
+        return button;
+    }
+
+    // 積読ステータス変更画面を開くボタンを作成する。
+    private JButton createStatusChangeButton() {
+        JButton button = createBaseButton("積読ステータスを変更");
+        button.addActionListener(e -> {
+            StatusChangeView view =
+                    new StatusChangeView(statusChangeController, repository);
+            view.setVisible(true);
+        });
+        return button;
+    }
+
+    // 統計情報画面を開くボタンを作成する。
+    private JButton createStatisticsButton() {
+        JButton button = createBaseButton("統計情報を表示");
+        button.addActionListener(e -> {
+            StatisticsView statisticsView =
+                    new StatisticsView(statisticsController, repository);
+            statisticsView.setVisible(true);
         });
         return button;
     }
