@@ -1,8 +1,11 @@
 package domain;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Bookshelf {
+public class Bookshelf implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private ArrayList<Book> books;
 
     public Bookshelf() {

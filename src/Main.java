@@ -24,7 +24,7 @@ public class Main {
             BookEditDeleteController editDeleteController =
                     new BookEditDeleteController(repository);
             StatusChangeController statusChangeController =
-                    new StatusChangeController();
+                    new StatusChangeController(repository);
             StatisticsController statisticsController =
                     new StatisticsController();
             TsundokuPeriodController tsundokuPeriodController =

@@ -1,8 +1,11 @@
 package domain;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Book {
+public class Book implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String isbnCode;
     private String bookName;
     private String writerName;

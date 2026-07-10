@@ -11,7 +11,7 @@ public class BookEditDeleteController {
     }
 
     public void updateBook(Book book) {
-        repository.saveBook(book);
+        repository.updateBook(book);
     }
 
     public void deleteBook(Book book) {
