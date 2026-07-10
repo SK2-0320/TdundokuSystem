@@ -6,7 +6,9 @@ import controller.BookSearchController;
 import controller.StatisticsController;
 import controller.StatusChangeController;
 import controller.TsundokuPeriodController;
+import domain.Book;
 import gui.MainView;
+import storage.BookApiService;
 import storage.BookRepository;
 
 public class Main {
@@ -16,9 +18,11 @@ public class Main {
             // アプリケーション全体で共有するRepositoryを生成する。
             BookRepository repository = new BookRepository();
 
+            BookApiService bookApiService = new BookApiService();
+
             // 同じRepositoryを使って各Controllerを生成する。
             BookRegisterController registerController =
-                    new BookRegisterController(repository);
+                    new BookRegisterController(repository,bookApiService);
             BookSearchController searchController =
                     new BookSearchController(repository);
             BookEditDeleteController editDeleteController =
